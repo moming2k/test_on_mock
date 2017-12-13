@@ -4,7 +4,15 @@ class Country < ActiveResource::Base
 
     def self.find_by_name(name)
         params = {:name => name}
-        self.find(:all, :params => params) || []
+        begin
+            self.find(:all, :params => params) || []
+        rescue ActiveResource::ServerError => e
+            Rails.logger.warn { "Encountered a non-fatal ServerError error for: #{name}" }
+            return []
+        rescue => e
+            Rails.logger.error { "Encountered an error when trying to find Country for: #{name}, #{e.message} #{e.backtrace.join("\n")}" }
+            return []
+        end
     end
 
     class << self
